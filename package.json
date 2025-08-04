@@ -1,0 +1,42 @@
+{
+	"name": "@vdegenne/rubiks",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {}
+	},
+	"types": "",
+	"files": [],
+	"devDependencies": {
+		"@web-cube/web-cube": "^0.7.0",
+		"lit": "^3.3.1",
+		"typescript": "^5.9.2",
+		"wireit": "^0.14.12"
+	},
+	"peerDependencies": {
+		"@web-cube/web-cube": "^0.7.0",
+		"lit": "^3.0.0"
+	},
+	"scripts": {
+		"build": "wireit",
+		"dev": "wireit"
+	},
+	"wireit": {
+		"build": {
+			"command": "tsc",
+			"clean": "if-file-deleted",
+			"files": [
+				"./tsconfig.json",
+				"./src"
+			],
+			"output": [
+				"./lib"
+			]
+		},
+		"dev": {
+			"service": true,
+			"command": "vite"
+		}
+	}
+}
+
