@@ -1,16 +1,16 @@
 import {
 	define as defineWebCubeElement,
-	type LayerRotationOptions,
+	type FlatState,
 	type WebCube,
 } from '@web-cube/web-cube'
 import {css, html, LitElement, PropertyValues} from 'lit'
 import {customElement, property} from 'lit/decorators.js'
-import {type Rotation} from './objects.js'
+import {movesLineToEnumValues, type Rotation} from './utils.js'
 
 defineWebCubeElement()
 
 interface GlobalMotionOptions {
-	speed: number
+	speed?: number
 }
 
 interface MotionOptions extends GlobalMotionOptions {
@@ -18,7 +18,7 @@ interface MotionOptions extends GlobalMotionOptions {
 }
 
 const DEFAULT_GLOBAL_MOTION_OPTIONS: GlobalMotionOptions = {
-	speed: 500,
+	// speed: 200,
 }
 const DEFAULT_MOTION_OPTIONS: MotionOptions = {
 	...DEFAULT_GLOBAL_MOTION_OPTIONS,
@@ -32,19 +32,30 @@ export class RubiksElement extends LitElement {
 	 *
 	 * @default true
 	 */
-	@property({type: Boolean}) listening = true
+	@property({type: Boolean}) listening = false
+	@property({type: Number}) speed = 200
+
+	@property({type: String, attribute: 'initial-sequence'}) initialSequence:
+		| string
+		| Rotation[]
+		| undefined = undefined
 
 	get #cube() {
 		return this.shadowRoot?.querySelector('web-cube') as WebCube
 	}
 
+	getState() {
+		return this.#cube.getState()
+	}
+
 	render() {
 		return html`<!-- -->
-			<web-cube speed="100"></web-cube>
+			<web-cube></web-cube>
 			<!-- -->`
 	}
 
 	protected updated(_changedProperties: PropertyValues<this>): void {
+		// console.log(this.listening)
 		if (_changedProperties.has('listening')) {
 			if (this.listening === true) {
 				this.#registerListeners()
@@ -84,27 +95,57 @@ export class RubiksElement extends LitElement {
 		switch (event.key) {
 			case 'u':
 			case 'U':
-				this.U({prime: event.shiftKey})
+				if (event.altKey) {
+					event.preventDefault()
+					this.Uw({prime: event.shiftKey, speed: 200})
+				} else {
+					this.U({prime: event.shiftKey})
+				}
 				break
 			case 'd':
 			case 'D':
-				this.D({prime: event.shiftKey})
+				if (event.altKey) {
+					event.preventDefault()
+					this.Dw({prime: event.shiftKey, speed: 200})
+				} else {
+					this.D({prime: event.shiftKey})
+				}
 				break
 			case 'r':
 			case 'R':
-				this.R({prime: event.shiftKey})
+				if (event.altKey) {
+					event.preventDefault()
+					this.Rw({prime: event.shiftKey, speed: 200})
+				} else {
+					this.R({prime: event.shiftKey})
+				}
 				break
 			case 'l':
 			case 'L':
-				this.L({prime: event.shiftKey})
+				if (event.altKey) {
+					event.preventDefault()
+					this.Lw({prime: event.shiftKey, speed: 200})
+				} else {
+					this.L({prime: event.shiftKey})
+				}
 				break
 			case 'f':
 			case 'F':
-				this.F({prime: event.shiftKey})
+				if (event.altKey) {
+					event.preventDefault()
+					this.Fw({prime: event.shiftKey, speed: 200})
+				} else {
+					this.F({prime: event.shiftKey})
+				}
 				break
 			case 'b':
 			case 'B':
-				this.B({prime: event.shiftKey})
+				if (event.altKey) {
+					event.preventDefault()
+					this.Bw({prime: event.shiftKey, speed: 200})
+				} else {
+					this.B({prime: event.shiftKey})
+				}
 				break
 			case 'x':
 			case 'X':
@@ -134,7 +175,7 @@ export class RubiksElement extends LitElement {
 	}
 
 	#intersectMotionOptions(options?: Partial<MotionOptions>): MotionOptions {
-		return {...DEFAULT_MOTION_OPTIONS, ...(options ?? {})}
+		return {...DEFAULT_MOTION_OPTIONS, speed: this.speed, ...(options ?? {})}
 	}
 	#enqueueMethod(method: () => Promise<void>) {
 		return new Promise<void>((resolve, reject) => {
@@ -154,6 +195,27 @@ export class RubiksElement extends LitElement {
 			}),
 		)
 	}
+	Uw(options?: Partial<MotionOptions>): Promise<void> {
+		const _o = this.#intersectMotionOptions(options)
+		this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'y',
+				layer: 0,
+				angle: 90,
+				backwards: !_o.prime,
+				..._o,
+			}),
+		)
+		return this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'y',
+				layer: 1,
+				angle: 90,
+				backwards: !_o.prime,
+				..._o,
+			}),
+		)
+	}
 
 	D(options?: Partial<MotionOptions>): Promise<void> {
 		const _o = this.#intersectMotionOptions(options)
@@ -161,6 +223,27 @@ export class RubiksElement extends LitElement {
 			this.#cube.rotateLayer({
 				axis: 'y',
 				layer: 2,
+				angle: 90,
+				backwards: _o.prime,
+				..._o,
+			}),
+		)
+	}
+	Dw(options?: Partial<MotionOptions>): Promise<void> {
+		const _o = this.#intersectMotionOptions(options)
+		this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'y',
+				layer: 2,
+				angle: 90,
+				backwards: _o.prime,
+				..._o,
+			}),
+		)
+		return this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'y',
+				layer: 1,
 				angle: 90,
 				backwards: _o.prime,
 				..._o,
@@ -180,6 +263,27 @@ export class RubiksElement extends LitElement {
 			}),
 		)
 	}
+	Rw(options?: Partial<MotionOptions>): Promise<void> {
+		const _o = this.#intersectMotionOptions(options)
+		this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'z',
+				layer: 2,
+				angle: 90,
+				backwards: _o.prime,
+				..._o,
+			}),
+		)
+		return this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'z',
+				layer: 1,
+				angle: 90,
+				backwards: _o.prime,
+				..._o,
+			}),
+		)
+	}
 
 	L(options?: Partial<MotionOptions>): Promise<void> {
 		const _o = this.#intersectMotionOptions(options)
@@ -187,6 +291,27 @@ export class RubiksElement extends LitElement {
 			this.#cube.rotateLayer({
 				axis: 'z',
 				layer: 0,
+				angle: 90,
+				backwards: !_o.prime,
+				..._o,
+			}),
+		)
+	}
+	Lw(options?: Partial<MotionOptions>): Promise<void> {
+		const _o = this.#intersectMotionOptions(options)
+		this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'z',
+				layer: 0,
+				angle: 90,
+				backwards: !_o.prime,
+				..._o,
+			}),
+		)
+		return this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'z',
+				layer: 1,
 				angle: 90,
 				backwards: !_o.prime,
 				..._o,
@@ -206,6 +331,27 @@ export class RubiksElement extends LitElement {
 			}),
 		)
 	}
+	Fw(options?: Partial<MotionOptions>): Promise<void> {
+		const _o = this.#intersectMotionOptions(options)
+		this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'x',
+				layer: 0,
+				angle: 90,
+				backwards: !_o.prime,
+				..._o,
+			}),
+		)
+		return this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'x',
+				layer: 1,
+				angle: 90,
+				backwards: !_o.prime,
+				..._o,
+			}),
+		)
+	}
 
 	B(options?: Partial<MotionOptions>): Promise<void> {
 		const _o = this.#intersectMotionOptions(options)
@@ -213,6 +359,27 @@ export class RubiksElement extends LitElement {
 			this.#cube.rotateLayer({
 				axis: 'x',
 				layer: 2,
+				angle: 90,
+				backwards: _o.prime,
+				..._o,
+			}),
+		)
+	}
+	Bw(options?: Partial<MotionOptions>): Promise<void> {
+		const _o = this.#intersectMotionOptions(options)
+		this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'x',
+				layer: 2,
+				angle: 90,
+				backwards: _o.prime,
+				..._o,
+			}),
+		)
+		return this.#enqueueMethod(() =>
+			this.#cube.rotateLayer({
+				axis: 'x',
+				layer: 1,
 				angle: 90,
 				backwards: _o.prime,
 				..._o,
@@ -334,6 +501,11 @@ export class RubiksElement extends LitElement {
 
 	#queue: (() => Promise<void>)[] = []
 	#processing = false
+	#queuePromiseWithResolvers: PromiseWithResolvers<void> | undefined
+
+	get queueComplete() {
+		return this.#queuePromiseWithResolvers?.promise || Promise.resolve()
+	}
 
 	#enqueueMove(moveFn: () => Promise<void>) {
 		this.#queue.push(moveFn)
@@ -341,7 +513,13 @@ export class RubiksElement extends LitElement {
 	}
 
 	async #processQueue() {
+		this.#queuePromiseWithResolvers = Promise.withResolvers()
 		this.#processing = true
+		// if (this.#firstUpdateCompletePromiseWithResolvers.hasResolved) {
+		this.dispatchEvent(
+			new Event('queue-started', {bubbles: true, composed: true}),
+		)
+		// }
 		while (this.#queue.length > 0) {
 			const task = this.#queue.shift()
 			if (task) {
@@ -352,16 +530,50 @@ export class RubiksElement extends LitElement {
 				}
 			}
 		}
+		this.#queuePromiseWithResolvers.resolve()
+		// if (this.#firstUpdateCompletePromiseWithResolvers.hasResolved) {
+		this.dispatchEvent(
+			new Event('queue-ended', {bubbles: true, composed: true}),
+		)
+		// }
 		this.#processing = false
 	}
 
-	async sequence(
+	/**
+	 * Clearing the queue doesn't force the current move to stop, you'll have to use the queueComplete promise
+	 * to wait for stability from the front end
+	 */
+	clearQueue() {
+		this.#queue = []
+	}
+
+	async #sequence(
 		rotations: Rotation[],
 		options?: GlobalMotionOptions,
 	): Promise<void> {
 		for (const rotation of rotations) {
-			await this[rotation](options)
+			this[rotation](options)
 		}
+		return this.queueComplete
+	}
+
+	move(
+		moves: Rotation | string | Rotation[] | string[],
+		options?: GlobalMotionOptions,
+	) {
+		if (!Array.isArray(moves)) {
+			moves = [moves]
+		}
+		const _moves: Rotation[] = moves
+			.map((m) => {
+				if (typeof m === 'string') {
+					return movesLineToEnumValues(m)
+				} else {
+					return m
+				}
+			})
+			.flat()
+		return this.#sequence(_moves, options)
 	}
 
 	static styles = css`
@@ -371,4 +583,69 @@ export class RubiksElement extends LitElement {
 			height: 100%;
 		}
 	`
+
+	async reset(hard = false) {
+		this.clearQueue()
+		await this.queueComplete
+		this.#cube.setState(hard ? START_SNAPSHOT : this.#snapshot)
+	}
+
+	#snapshot = START_SNAPSHOT
+	takeSnapshot() {
+		this.#snapshot = this.getState()
+	}
+
+	#firstUpdateCompletePromiseWithResolvers = {
+		...Promise.withResolvers<void>(),
+		hasResolved: false,
+	}
+	get firstUpdateComplete() {
+		return this.#firstUpdateCompletePromiseWithResolvers.promise
+	}
+
+	protected async firstUpdated(_changed: PropertyValues) {
+		await this.reset(true)
+		if (this.initialSequence) {
+			this.move(this.initialSequence, {speed: 1})
+			await this.queueComplete
+			this.takeSnapshot()
+			this.#firstUpdateCompletePromiseWithResolvers.resolve()
+			this.#firstUpdateCompletePromiseWithResolvers.hasResolved = true
+		}
+	}
 }
+
+const START_SNAPSHOT: FlatState = {
+	'0': [
+		[3, 3, 3],
+		[3, 3, 3],
+		[3, 3, 3],
+	],
+	'1': [
+		[2, 2, 2],
+		[2, 2, 2],
+		[2, 2, 2],
+	],
+	'2': [
+		[4, 4, 4],
+		[4, 4, 4],
+		[4, 4, 4],
+	],
+	'3': [
+		[5, 5, 5],
+		[5, 5, 5],
+		[5, 5, 5],
+	],
+	'4': [
+		[1, 1, 1],
+		[1, 1, 1],
+		[1, 1, 1],
+	],
+	'5': [
+		[0, 0, 0],
+		[0, 0, 0],
+		[0, 0, 0],
+	],
+}
+
+export {Rotation} from './utils.js'

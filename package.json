@@ -1,9 +1,12 @@
 {
 	"name": "@vdegenne/rubiks",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"type": "module",
 	"exports": {
-		".": {}
+		".": {
+			"import": "./lib/index.js",
+			"types": "./lib/index.d.ts"
+		}
 	},
 	"types": "",
 	"files": [],
@@ -39,4 +42,3 @@
 		}
 	}
 }
-
